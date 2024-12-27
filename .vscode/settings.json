@@ -71,6 +71,7 @@
 		"xtree": "cpp",
 		"xutility": "cpp",
 		"fstream": "cpp",
-		"iostream": "cpp"
+		"iostream": "cpp",
+		"*.rh": "cpp"
 	}
 }
