@@ -72,6 +72,7 @@
 		"xutility": "cpp",
 		"fstream": "cpp",
 		"iostream": "cpp",
-		"*.rh": "cpp"
+		"*.rh": "cpp",
+		"any": "cpp"
 	}
 }

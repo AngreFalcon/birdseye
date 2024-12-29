@@ -1,36 +1,7 @@
 #include "download.hpp"
+#include <spdlog/spdlog.h>
 
 #define USERAGENT "birdseye/0.1"
-
-Set jsonToSet(json& set) {
-	Set s;
-	s.uuid = set["id"];
-	s.setCode = set["code"];
-	s.mtgoCode = set.value("mtgo_code", "null");
-	s.arenaCode = set.value("arena_code", "null");
-	s.tcgplayerId = set.value("tcgplayer_id", 0);
-	s.name = set["name"];
-	s.type = set["set_type"];
-	s.releaseDate = stringToTime(set["released_at"]);
-	s.blockCode = set.value("block_code", "null");
-	s.block = set.value("block", "null");
-	s.parentCode = set.value("parent_set_code", "null");
-	s.cardCount = set["card_count"];
-	s.printedSize = set.value("printed_size", 0);
-	s.digital = set["digital"];
-	s.foilOnly = set["foil_only"];
-	s.nonfoilOnly = set["nonfoil_only"];
-	s.IconURI = set["icon_svg_uri"];
-	return s;
-}
-
-time_t stringToTime(json& date) {
-	std::istringstream dateStream;
-	dateStream.str() = date;
-	tm tm = {};
-	dateStream >> std::get_time(&tm, "%Y-%m-%d");
-	return mktime(&tm);
-}
 
 size_t writeFunction(void *ptr, size_t size, size_t nmemb, std::string* data) {
     data->append((char*) ptr, size * nmemb);
@@ -50,4 +21,29 @@ std::string downloadData(const std::string& dlURL) {
 	}
 	curl_easy_cleanup(curl);
 	return data;
+}
+
+void downloadDataToFile(const std::string& dlURL, const std::string& dest) {
+	CURL *curl = curl_easy_init();
+	CURLcode dlResult;
+	FILE *data;
+	if (curl) {
+		fopen_s(&data, dest.c_str(), "wb");
+		curl_easy_setopt(curl, CURLOPT_URL, dlURL.c_str());
+		curl_easy_setopt(curl, CURLOPT_USERAGENT, USERAGENT);
+    	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, data);
+		dlResult = curl_easy_perform(curl);
+	}
+	fclose(data);
+	curl_easy_cleanup(curl);
+	return;
+}
+
+void getBulkDownload(const std::string& dlURL, const std::string& dest) {
+	std::string str = downloadData(dlURL);
+	json j = json::parse(str, nullptr, false);
+	str = j["download_uri"];
+	downloadDataToFile(str, dest);
+	return;
 }
