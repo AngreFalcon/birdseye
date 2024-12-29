@@ -73,6 +73,8 @@
 		"fstream": "cpp",
 		"iostream": "cpp",
 		"*.rh": "cpp",
-		"any": "cpp"
+		"any": "cpp",
+		"ranges": "cpp",
+		"span": "cpp"
 	}
 }
