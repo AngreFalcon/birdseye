@@ -1,34 +1,37 @@
 #pragma once
-#include <sqlite3.h>
+#include <sqlitecpp/sqlitecpp.h>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 
 class Database {
 public:
-	sqlite3* connection;
-    void initialize();
+	Database(void) = default;
+	~Database() = default;
+	SQLite::Database* connection;
+    void initialize(const std::string& fileName);
+	bool validateAll(void);
 	bool validate(const std::string& tableName);
 	//std::vector<CardPreview> getCardsByName(const std::string& name);
 	//std::vector<CardPreview> getCardsByArtist(...);
+	void getTableCol(const std::string& tableName, const std::string& col);
+	void getTable(const std::string& tableName);
 
 private:
 	void createTable(const std::string& tableName, const std::string& fields);
-	time_t* stringToTime(const std::string& date);
+	void dropTable(const std::string& tableName);
 	std::vector<std::string> separateArtistNames(const std::string& names);
 
-	void prepareSql(sqlite3_stmt* stmt, const std::string& sql);
-	void bindSql(sqlite3_stmt* stmt, uint32_t i, const std::string& data);
-	void bindSql(sqlite3_stmt* stmt, uint32_t i, const uint32_t data);
-	void bindSql(sqlite3_stmt* stmt, uint32_t i, const void* data, uint32_t size);
-	void bindSql(sqlite3_stmt* stmt, uint32_t i, const double data);
-	uint32_t resetSql(sqlite3_stmt* stmt);
-	void finalizeSql(sqlite3_stmt* stmt);
-	uint32_t finalizeSqlRetInt(sqlite3_stmt* stmt, uint32_t col);
+	void resetSql(SQLite::Statement& stmt);
+	void executeSql(SQLite::Statement& stmt);
+	uint32_t executeSqlGetInt(SQLite::Statement& stmt, uint32_t col);
+	void insertOptVal(const uint32_t ind, const json& data, const std::string& key, const std::string& value, SQLite::Statement& stmt);
+	void insertOptVal(const uint32_t ind, const json& data, const std::string& key, const uint32_t value, SQLite::Statement& stmt);
+	void insertOptVal(const uint32_t ind, const json& data, const std::string& key, const double value, SQLite::Statement& stmt);
 
-	void populateDB();
-	void retrieveSets();
-	void retrieveCards();
+	void populateDB(void);
+	void retrieveSets(void);
+	void retrieveCards(void);
 	void insertArtistFromCard(const json& data, const std::string& faceId);
 	void insertArtistFromFace(const json& data, const std::string& faceId);
 	void insertCardSet(const json& data);
@@ -46,6 +49,10 @@ private:
 	void insertRelatedCardObject(const json& data, const std::string& cardId);
 
 	/*junction table functions*/
+	void joinTables(const std::string& sql, const std::string& firstPrimary, const std::string& secondPrimary);
+	void joinTables(const std::string& sql, const uint32_t firstPrimary, const std::string& secondPrimary);
+	void joinTables(const std::string& sql, const std::string& firstPrimary, const uint32_t secondPrimary);
+	/*
 	void joinCard_ColorIdentity(const std::string& cardId, const std::string& colorIdentityId);
 	void joinCard_Legality(const std::string& cardId, const uint32_t legalityId);
 	void joinCard_Finish(const std::string& cardId, const std::string& finishType);
@@ -57,4 +64,5 @@ private:
 	void joinFace_Artist(const uint32_t faceId, const std::string& artistId);
 	void joinFace_ColorIndicator(const uint32_t faceId, const std::string& colorIndicatorId);
 	void joinFace_Colors(const uint32_t faceId, const std::string& colorsId);
+	*/
 };

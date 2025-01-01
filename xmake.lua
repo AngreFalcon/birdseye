@@ -5,13 +5,14 @@ if #os.dirs("lib/*") > 0 then
     includes("lib/**/xmake.lua")
 end
 
-local sharedPackages = { "spdlog", "sqlite3", "libcurl", "wolfssl", "nlohmann_json" }
+local sharedPackages = { "spdlog", "sqlitecpp", "libcurl", "wolfssl", "nlohmann_json" }
 local releasePackages = {}
 local debugPackages = {}
 
 add_requires(table.join(releasePackages, debugPackages, sharedPackages))
 add_packages(sharedPackages)
 
+set_defaultmode("debug")
 set_license("GPL-2.0")
 set_kind("binary")
 set_optimize("smallest")
