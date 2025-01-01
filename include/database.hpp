@@ -31,7 +31,7 @@ private:
 	void retrieveCards();
 	void insertArtistFromCard(const json& data, const std::string& faceId);
 	void insertArtistFromFace(const json& data, const std::string& faceId);
-	void insertCardSet(const json& data, size_t i);
+	void insertCardSet(const json& data);
 	void insertCard(const json& data);
 	void colorJoin(const std::string& baseId, const std::string& colorId, const uint8_t funcInd);
 	void insertColor(const json& dataArray, const std::string& id, const uint8_t funcInd);

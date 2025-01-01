@@ -244,6 +244,7 @@ std::vector<std::string> Database::separateArtistNames(const std::string& names)
 }
 
 void Database::prepareSql(sqlite3_stmt* stmt, const std::string& sql) {
+    sqlite3_open("./birdseye.db3", &this->connection);
 	uint32_t rc = sqlite3_prepare_v2(this->connection, sql.c_str(), static_cast<int>(sql.size()), &stmt, NULL);
     if (rc != SQLITE_OK) {
         SPDLOG_TRACE("error: {}\n", sqlite3_errmsg(this->connection));
@@ -253,8 +254,10 @@ void Database::prepareSql(sqlite3_stmt* stmt, const std::string& sql) {
 }
 
 void Database::bindSql(sqlite3_stmt* stmt, uint32_t i, const std::string& data) {
-    uint32_t rc = sqlite3_bind_text(stmt, i, data.c_str(), static_cast<int>(data.length()), SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
+	SPDLOG_TRACE("bind text, index: {}", i);
+    SPDLOG_TRACE("data: {}|", data.c_str(), i);
+	uint32_t rc = sqlite3_bind_text(stmt, i, data.c_str(), -1, SQLITE_STATIC);
+	if (rc != SQLITE_OK) {
         SPDLOG_TRACE("error: {}\n", sqlite3_errmsg(this->connection));
         exit(EXIT_FAILURE);
     }
@@ -262,6 +265,8 @@ void Database::bindSql(sqlite3_stmt* stmt, uint32_t i, const std::string& data) 
 }
 
 void Database::bindSql(sqlite3_stmt* stmt, uint32_t i, const uint32_t data) {
+	SPDLOG_TRACE("bind int, index: {}", i);
+    SPDLOG_TRACE("data: {}|", data, i);
     uint32_t rc = sqlite3_bind_int(stmt, i, data);
     if (rc != SQLITE_OK) {
         SPDLOG_TRACE("error: {}\n", sqlite3_errmsg(this->connection));
@@ -271,6 +276,8 @@ void Database::bindSql(sqlite3_stmt* stmt, uint32_t i, const uint32_t data) {
 }
 
 void Database::bindSql(sqlite3_stmt* stmt, uint32_t i, const void* data, uint32_t size) {
+	SPDLOG_TRACE("bind blob, index: {}", i);
+    SPDLOG_TRACE("data: {}|", data, i);
     uint32_t rc = sqlite3_bind_blob(stmt, 8, data, size, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         SPDLOG_TRACE("error: {}\n", sqlite3_errmsg(this->connection));
@@ -280,6 +287,8 @@ void Database::bindSql(sqlite3_stmt* stmt, uint32_t i, const void* data, uint32_
 }
 
 void Database::bindSql(sqlite3_stmt* stmt, uint32_t i, const double data) {
+	SPDLOG_TRACE("bind double, index: {}", i);
+    SPDLOG_TRACE("data: {}|", data, i);
     uint32_t rc = sqlite3_bind_double(stmt, i, data);
     if (rc != SQLITE_OK) {
         SPDLOG_TRACE("error: {}\n", sqlite3_errmsg(this->connection));
@@ -331,7 +340,7 @@ uint32_t Database::finalizeSqlRetInt(sqlite3_stmt* stmt, uint32_t col) {
 
 void Database::populateDB() {
     retrieveSets();
-    retrieveCards();
+    //retrieveCards();
     return;
 }
 
@@ -341,7 +350,7 @@ void Database::retrieveSets() {
     json j = json::parse(rawJSON, nullptr, false);
     uint64_t it = 0;
     for (const auto& i : j["data"].items()) {
-        insertCardSet(i.value(), it++);
+        insertCardSet(i.value());
     }
     return;
 }
@@ -381,7 +390,7 @@ void Database::insertArtistFromFace(const json& data, const std::string& faceId)
     return;
 }
 
-void Database::insertCardSet(const json& data, size_t i) {
+void Database::insertCardSet(const json& data) {
     sqlite3_open("./birdseye.db3", &this->connection);
     sqlite3_stmt* stmt;
     std::string sql = "INSERT INTO CardSet(id,code,mtgo_code,arena_code,tcgplayer_id,name,set_type,released_at,block_code,block,parent_set_code,card_count,printed_size,digital,foil_only,nonfoil_only,scryfall_uri,icon_svg_uri) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";

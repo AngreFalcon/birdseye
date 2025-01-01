@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
 	Database db;
 	if (std::filesystem::exists("./birdseye.db3"))
 		std::filesystem::remove("./birdseye.db3");
-	//db.initialize();
+	db.initialize();
 	//downloadDataToFile("https://api.scryfall.com/cards/named?fuzzy=Phyrexian+Metamorph", "./testing.json");
 	if (db.validate("Artist") 
 	&& db.validate("PromoType") 
