@@ -344,9 +344,22 @@ void Database::retrieveSets(void) {
 }
 
 void Database::retrieveCards(void) {
-    //getBulkDownload("https://api.scryfall.com/bulk-data/oracle-cards", "./all-cards.json");
+	std::string cacheFile = "./download-cache.json";
+    getBulkDownload("https://api.scryfall.com/bulk-data/oracle-cards", cacheFile);
     std::this_thread::sleep_for(std::chrono::milliseconds(100)); // ensure we respect scryfall's API guidelines by waiting at least 100 milliseconds before we can possibly initiate another connection
-    return;
+    
+    sax_event_consumer sec;
+	sec.db = this;
+	FILE* file;
+	fopen_s(&file, cacheFile.c_str(), "r");
+	bool result = json::sax_parse(file, &sec);
+	if (!result) {
+		// json file structure turned out invalid
+	}
+	if (std::filesystem::exists(cacheFile)) {
+		std::filesystem::remove(cacheFile);
+	}
+	return;
 }
 
 void Database::insertArtistFromCard(const json& data, const std::string& faceId) {

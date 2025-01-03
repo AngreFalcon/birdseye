@@ -5,6 +5,7 @@
 using json = nlohmann::json;
 
 class Database {
+friend class sax_event_consumer;
 public:
 	Database(void) = default;
 	~Database() = default;
@@ -17,6 +18,9 @@ public:
 	void getTableCol(const std::string& tableName, const std::string& col);
 	void getTable(const std::string& tableName);
 
+protected:
+	void insertCard(const json& data);
+
 private:
 	void createTable(const std::string& tableName, const std::string& fields);
 	void dropTable(const std::string& tableName);
@@ -25,9 +29,6 @@ private:
 	void resetSql(SQLite::Statement& stmt);
 	void executeSql(SQLite::Statement& stmt);
 	uint32_t executeSqlGetInt(SQLite::Statement& stmt, uint32_t col);
-	void insertOptVal(const uint32_t ind, const json& data, const std::string& key, const std::string& value, SQLite::Statement& stmt);
-	void insertOptVal(const uint32_t ind, const json& data, const std::string& key, const uint32_t value, SQLite::Statement& stmt);
-	void insertOptVal(const uint32_t ind, const json& data, const std::string& key, const double value, SQLite::Statement& stmt);
 
 	void populateDB(void);
 	void retrieveSets(void);
@@ -35,7 +36,6 @@ private:
 	void insertArtistFromCard(const json& data, const std::string& faceId);
 	void insertArtistFromFace(const json& data, const std::string& faceId);
 	void insertCardSet(const json& data);
-	void insertCard(const json& data);
 	void colorJoin(const std::string& baseId, const std::string& colorId, const uint8_t funcInd);
 	void insertColor(const json& dataArray, const std::string& id, const uint8_t funcInd);
 	std::string insertFace(const json& data, const std::string& cardId);
@@ -47,8 +47,6 @@ private:
 	void insertMultiverseID(const std::string& data, const std::string& cardId);
 	void insertPromoType(const std::string& data, const std::string& cardId);
 	void insertRelatedCardObject(const json& data, const std::string& cardId);
-
-	/*junction table functions*/
 	void joinTables(const std::string& sql, const std::string& firstPrimary, const std::string& secondPrimary);
 	void joinTables(const std::string& sql, const uint32_t firstPrimary, const std::string& secondPrimary);
 	void joinTables(const std::string& sql, const std::string& firstPrimary, const uint32_t secondPrimary);
