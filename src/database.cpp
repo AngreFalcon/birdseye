@@ -414,6 +414,7 @@ void Database::insertCardSet(const json& data) {
 void Database::insertCard(const json& data) {
     std::string sql = "INSERT INTO Card(arena_id,id,lang,mtgo_id,mtgo_foil_id,tcgplayer_id,tcgplayer_etched_id,cardmarket_id,layout,oracle_id,rulings_uri,scryfall_uri,cmc,defense,hand_modifier,life_modifier,loyalty,name,reserved,type_line,booster,border_color,card_back_id,collector_number,content_warning,digital,flavor_name,frame,full_art,highres_image,image_status,oversized,printed_name,printed_text,printed_type_line,promo,rarity,released_at,reprint,set_id,story_spotlight,textless,variation,variation_of,security_stamp) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     SQLite::Statement stmt(*this->connection, sql);
+	SPDLOG_TRACE("entered insert card");
 	std::string cardId = static_cast<std::string>(data["id"]);
 	//core fields
 	data.contains("arena_id") ? stmt.bind(1, static_cast<uint32_t>(data["arena_id"])) : stmt.bind(1);

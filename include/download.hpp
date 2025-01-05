@@ -1,6 +1,7 @@
 #pragma once
 #include <nlohmann/json.hpp>
 #include <string>
+#include <queue>
 
 using json = nlohmann::json;
 
@@ -33,8 +34,9 @@ class Database;
 class sax_event_consumer : public json::json_sax_t {
 public:
 	int layer = 0;
-	json* tempCard;
+	std::queue<json> workingObj;
 	Database* db;
+	std::queue<std::string> keys;
 
     bool start_object(std::size_t elements) override;
     bool start_array(std::size_t elements) override;
