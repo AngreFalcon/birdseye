@@ -51,162 +51,118 @@ void getBulkDownload(const std::string& dlURL, const std::string& dest) {
     return;
 }
 
+sax_event_consumer::sax_event_consumer(Database* db) {
+	this->db = db;
+}
+
 bool sax_event_consumer::start_object(std::size_t elements) {
-    SPDLOG_TRACE("enter start_object");
-    layer++;
     this->workingObj.push(json::object());
     return true;
 }
 
 bool sax_event_consumer::start_array(std::size_t elements) {
-    SPDLOG_TRACE("enter start_array");
-    if (this->layer != 0) {
-        this->workingObj.back().emplace(this->keys.back(), json::array());
-        if (!this->workingObj.back().contains(this->keys.back())) {
-            SPDLOG_TRACE("failed to emplace element");
-            exit(EXIT_FAILURE);
-        }
+    if (this->workingObj.size() != 0) {
+        this->workingObj.top().emplace(this->keys.top(), json::array());
     }
     return true;
 }
 
 bool sax_event_consumer::key(string_t& val) {
-    SPDLOG_TRACE("enter key");
-    if (this->layer > this->keys.size())
+    if (this->workingObj.size() > this->keys.size())
         this->keys.push(val);
     else {
-        if (!this->keys.empty() && !this->workingObj.back().contains(this->keys.back()) && this->keys.back() == "id") {
-            SPDLOG_TRACE("failed to emplace element {}", this->keys.back());
-            exit(EXIT_FAILURE);
-        }
-        this->keys.back() = val;
+        this->keys.top() = val;
     }
     return true;
 }
 
 bool sax_event_consumer::null() {
-    SPDLOG_TRACE("enter null");
     return true;
 }
 
 bool sax_event_consumer::binary(json::binary_t& val) {
-    SPDLOG_TRACE("enter binary");
-    json* j = &this->workingObj.back();
-    if (j->contains(this->keys.back()) && j->at(this->keys.back()).is_array()) {
-        j->at(this->keys.back()).insert(j->at(this->keys.back()).end(), val);
+    json* j = &this->workingObj.top();
+    if (j->contains(this->keys.top()) && j->at(this->keys.top()).is_array()) {
+        j->at(this->keys.top()).insert(j->at(this->keys.top()).end(), val);
     }
     else {
-        j->emplace(this->keys.back(), json::binary_t(val));
-        if (!j->contains(this->keys.back())) {
-            SPDLOG_TRACE("failed to emplace element");
-            exit(EXIT_FAILURE);
-        }
+        j->emplace(this->keys.top(), val);
     }
     return true;
 }
 
 bool sax_event_consumer::boolean(bool val) {
-    SPDLOG_TRACE("enter boolean");
-    json* j = &this->workingObj.back();
-    if (j->contains(this->keys.back()) && j->at(this->keys.back()).is_array()) {
-        j->at(this->keys.back()).insert(j->at(this->keys.back()).end(), val);
+    json* j = &this->workingObj.top();
+    if (j->contains(this->keys.top()) && j->at(this->keys.top()).is_array()) {
+        j->at(this->keys.top()).insert(j->at(this->keys.top()).end(), val);
     }
     else {
-        j->emplace(this->keys.back(), val);
-        if (!j->contains(this->keys.back())) {
-            SPDLOG_TRACE("failed to emplace element");
-            exit(EXIT_FAILURE);
-        }
+        j->emplace(this->keys.top(), val);
     }
     return true;
 }
 
 bool sax_event_consumer::number_integer(number_integer_t val) {
-    SPDLOG_TRACE("enter number_integer");
-    json* j = &this->workingObj.back();
-    if (j->contains(this->keys.back()) && j->at(this->keys.back()).is_array()) {
-        j->at(this->keys.back()).insert(j->at(this->keys.back()).end(), val);
+    json* j = &this->workingObj.top();
+    if (j->contains(this->keys.top()) && j->at(this->keys.top()).is_array()) {
+        j->at(this->keys.top()).insert(j->at(this->keys.top()).end(), val);
     }
     else {
-        j->emplace(this->keys.back(), json::number_integer_t(val));
-        if (!j->contains(this->keys.back())) {
-            SPDLOG_TRACE("failed to emplace element");
-            exit(EXIT_FAILURE);
-        }
+        j->emplace(this->keys.top(), val);
     }
     return true;
 }
 
 bool sax_event_consumer::number_unsigned(number_unsigned_t val) {
-    SPDLOG_TRACE("enter number_unsigned");
-    json* j = &this->workingObj.back();
-    if (j->contains(this->keys.back()) && j->at(this->keys.back()).is_array()) {
-        j->at(this->keys.back()).insert(j->at(this->keys.back()).end(), val);
+    json* j = &this->workingObj.top();
+    if (j->contains(this->keys.top()) && j->at(this->keys.top()).is_array()) {
+        j->at(this->keys.top()).insert(j->at(this->keys.top()).end(), val);
     }
     else {
-        j->emplace(this->keys.back(), json::number_unsigned_t(val));
-        if (!j->contains(this->keys.back())) {
-            SPDLOG_TRACE("failed to emplace element");
-            exit(EXIT_FAILURE);
-        }
+        j->emplace(this->keys.top(), val);
     }
     return true;
 }
 
 bool sax_event_consumer::number_float(number_float_t val, const string_t& s) {
-    SPDLOG_TRACE("enter number_float");
-    json* j = &this->workingObj.back();
-    if (j->contains(this->keys.back()) && j->at(this->keys.back()).is_array()) {
-        j->at(this->keys.back()).insert(j->at(this->keys.back()).end(), val);
+    json* j = &this->workingObj.top();
+    if (j->contains(this->keys.top()) && j->at(this->keys.top()).is_array()) {
+        j->at(this->keys.top()).insert(j->at(this->keys.top()).end(), val);
     }
     else {
-        j->emplace(this->keys.back(), json::number_float_t(val));
-        if (!j->contains(this->keys.back())) {
-            SPDLOG_TRACE("failed to emplace element");
-            exit(EXIT_FAILURE);
-        }
+        j->emplace(this->keys.top(), val);
     }
     return true;
 }
 
 bool sax_event_consumer::string(string_t& val) {
-    SPDLOG_TRACE("enter string");
-    json* j = &this->workingObj.back();
-    if (j->contains(this->keys.back()) && j->at(this->keys.back()).is_array()) {
-        j->at(this->keys.back()).insert(j->at(this->keys.back()).end(), val);
+    json* j = &this->workingObj.top();
+    if (j->contains(this->keys.top()) && j->at(this->keys.top()).is_array()) {
+        j->at(this->keys.top()).insert(j->at(this->keys.top()).end(), val);
     }
     else {
-		(*j)[this->keys.back()] = val;
-        if (!j->contains(this->keys.back())) {
-            SPDLOG_TRACE("failed to emplace element");
-            exit(EXIT_FAILURE);
-        }
+        j->emplace(this->keys.top(), val);
     }
     return true;
 }
 
 bool sax_event_consumer::end_object() {
-    SPDLOG_TRACE("enter end_object. layer = {}", this->layer);
-    this->keys.pop();
-    this->layer--;
-    json::object_t j = this->workingObj.back();
+    json::object_t j = this->workingObj.top();
     this->workingObj.pop();
-    // delete this->workingObj.back();
-    if (this->layer == 0) {
-        SPDLOG_TRACE("num of objs: {}, contains id: {}", this->workingObj.size(), this->workingObj.back().contains("id"));
-        //this->db->insertCard(j);
+    this->keys.pop();
+    if (this->workingObj.size() == 0) {
+        this->db->insertCard(Card(j));
     }
-    else if (this->workingObj.back().contains(this->keys.back()) && this->workingObj.back()[this->keys.back()].is_array()) {
-        this->workingObj.back()[this->keys.back()].insert(this->workingObj.back()[this->keys.back()].end(), j);
+	else if (this->workingObj.top().contains(this->keys.top()) && this->workingObj.top()[this->keys.top()].is_array()) {
+        this->workingObj.top()[this->keys.top()].insert(this->workingObj.top()[this->keys.top()].end(), j);
     }
     else {
-        this->workingObj.back().emplace(this->keys.back(), j);
+    	this->workingObj.top().emplace(this->keys.top(), j);
     }
     return true;
 }
 
 bool sax_event_consumer::end_array() {
-    SPDLOG_TRACE("enter end_array");
     return true;
 }
 

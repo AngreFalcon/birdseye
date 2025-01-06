@@ -79,7 +79,8 @@
 	"numeric": "cpp",
 	"valarray": "cpp",
 	"deque": "cpp",
-	"queue": "cpp"
+	"queue": "cpp",
+	"stack": "cpp"
 },
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",
