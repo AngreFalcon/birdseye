@@ -4,7 +4,6 @@
 #include <curl/curl.h>
 #include <spdlog/spdlog.h>
 
-
 #define USERAGENT "birdseye/0.1"
 
 size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
@@ -92,14 +91,13 @@ bool sax_event_consumer::null() {
 
 bool sax_event_consumer::binary(json::binary_t& val) {
     SPDLOG_TRACE("enter binary");
-    json* j = &this->workingObj.back()[this->keys.back()];
-    if (this->workingObj.back().contains(this->keys.back()) && (*j).is_array()) {
-        (*j).insert((*j).end(), val);
+    json* j = &this->workingObj.back();
+    if (j->contains(this->keys.back()) && j->at(this->keys.back()).is_array()) {
+        j->at(this->keys.back()).insert(j->at(this->keys.back()).end(), val);
     }
     else {
-        *j = json::binary_t(val);
-        // this->workingObj.back().emplace(this->keys.back(), val);
-        if (!this->workingObj.back().contains(this->keys.back())) {
+        j->emplace(this->keys.back(), json::binary_t(val));
+        if (!j->contains(this->keys.back())) {
             SPDLOG_TRACE("failed to emplace element");
             exit(EXIT_FAILURE);
         }
@@ -109,14 +107,13 @@ bool sax_event_consumer::binary(json::binary_t& val) {
 
 bool sax_event_consumer::boolean(bool val) {
     SPDLOG_TRACE("enter boolean");
-    json* j = &this->workingObj.back()[this->keys.back()];
-    if (this->workingObj.back().contains(this->keys.back()) && (*j).is_array()) {
-        (*j).insert((*j).end(), val);
+    json* j = &this->workingObj.back();
+    if (j->contains(this->keys.back()) && j->at(this->keys.back()).is_array()) {
+        j->at(this->keys.back()).insert(j->at(this->keys.back()).end(), val);
     }
     else {
-        *j = val;
-        // this->workingObj.back().emplace(this->keys.back(), val);
-        if (!this->workingObj.back().contains(this->keys.back())) {
+        j->emplace(this->keys.back(), val);
+        if (!j->contains(this->keys.back())) {
             SPDLOG_TRACE("failed to emplace element");
             exit(EXIT_FAILURE);
         }
@@ -126,14 +123,13 @@ bool sax_event_consumer::boolean(bool val) {
 
 bool sax_event_consumer::number_integer(number_integer_t val) {
     SPDLOG_TRACE("enter number_integer");
-    json* j = &this->workingObj.back()[this->keys.back()];
-    if (this->workingObj.back().contains(this->keys.back()) && (*j).is_array()) {
-        (*j).insert((*j).end(), val);
+    json* j = &this->workingObj.back();
+    if (j->contains(this->keys.back()) && j->at(this->keys.back()).is_array()) {
+        j->at(this->keys.back()).insert(j->at(this->keys.back()).end(), val);
     }
     else {
-        *j = json::number_integer_t(val);
-        // this->workingObj.back().emplace(this->keys.back(), val);
-        if (!this->workingObj.back().contains(this->keys.back())) {
+        j->emplace(this->keys.back(), json::number_integer_t(val));
+        if (!j->contains(this->keys.back())) {
             SPDLOG_TRACE("failed to emplace element");
             exit(EXIT_FAILURE);
         }
@@ -143,14 +139,13 @@ bool sax_event_consumer::number_integer(number_integer_t val) {
 
 bool sax_event_consumer::number_unsigned(number_unsigned_t val) {
     SPDLOG_TRACE("enter number_unsigned");
-    json* j = &this->workingObj.back()[this->keys.back()];
-    if (this->workingObj.back().contains(this->keys.back()) && (*j).is_array()) {
-        (*j).insert((*j).end(), val);
+    json* j = &this->workingObj.back();
+    if (j->contains(this->keys.back()) && j->at(this->keys.back()).is_array()) {
+        j->at(this->keys.back()).insert(j->at(this->keys.back()).end(), val);
     }
     else {
-        *j = json::number_unsigned_t(val);
-        // this->workingObj.back().emplace(this->keys.back(), val);
-        if (!this->workingObj.back().contains(this->keys.back())) {
+        j->emplace(this->keys.back(), json::number_unsigned_t(val));
+        if (!j->contains(this->keys.back())) {
             SPDLOG_TRACE("failed to emplace element");
             exit(EXIT_FAILURE);
         }
@@ -160,14 +155,13 @@ bool sax_event_consumer::number_unsigned(number_unsigned_t val) {
 
 bool sax_event_consumer::number_float(number_float_t val, const string_t& s) {
     SPDLOG_TRACE("enter number_float");
-    json* j = &this->workingObj.back()[this->keys.back()];
-    if (this->workingObj.back().contains(this->keys.back()) && (*j).is_array()) {
-        (*j).insert((*j).end(), val);
+    json* j = &this->workingObj.back();
+    if (j->contains(this->keys.back()) && j->at(this->keys.back()).is_array()) {
+        j->at(this->keys.back()).insert(j->at(this->keys.back()).end(), val);
     }
     else {
-        *j = json::number_float_t(val);
-        // this->workingObj.back().emplace(this->keys.back(), val);
-        if (!this->workingObj.back().contains(this->keys.back())) {
+        j->emplace(this->keys.back(), json::number_float_t(val));
+        if (!j->contains(this->keys.back())) {
             SPDLOG_TRACE("failed to emplace element");
             exit(EXIT_FAILURE);
         }
@@ -177,14 +171,13 @@ bool sax_event_consumer::number_float(number_float_t val, const string_t& s) {
 
 bool sax_event_consumer::string(string_t& val) {
     SPDLOG_TRACE("enter string");
-    json* j = &this->workingObj.back()[this->keys.back()];
-    if (this->workingObj.back().contains(this->keys.back()) && (*j).is_array()) {
-        (*j).insert((*j).end(), val);
+    json* j = &this->workingObj.back();
+    if (j->contains(this->keys.back()) && j->at(this->keys.back()).is_array()) {
+        j->at(this->keys.back()).insert(j->at(this->keys.back()).end(), val);
     }
     else {
-        *j = json::string_t(val);
-        // this->workingObj.back().emplace(this->keys.back(), val);
-        if (!this->workingObj.back().contains(this->keys.back())) {
+		(*j)[this->keys.back()] = val;
+        if (!j->contains(this->keys.back())) {
             SPDLOG_TRACE("failed to emplace element");
             exit(EXIT_FAILURE);
         }
@@ -197,11 +190,11 @@ bool sax_event_consumer::end_object() {
     this->keys.pop();
     this->layer--;
     json::object_t j = this->workingObj.back();
-    // delete this->workingObj.back();
     this->workingObj.pop();
+    // delete this->workingObj.back();
     if (this->layer == 0) {
-        SPDLOG_TRACE("contains id: {}", j.contains("id"));
-        this->db->insertCard(j);
+        SPDLOG_TRACE("num of objs: {}, contains id: {}", this->workingObj.size(), this->workingObj.back().contains("id"));
+        //this->db->insertCard(j);
     }
     else if (this->workingObj.back().contains(this->keys.back()) && this->workingObj.back()[this->keys.back()].is_array()) {
         this->workingObj.back()[this->keys.back()].insert(this->workingObj.back()[this->keys.back()].end(), j);
