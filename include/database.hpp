@@ -9,19 +9,27 @@ class Database {
     friend class sax_event_consumer;
 
 public:
+    std::unique_ptr<SQLite::Database> connection;
+
 	Database(const std::string& dbLoc);
     Database(void) = default;
     ~Database() = default;
-    std::unique_ptr<SQLite::Database> connection;
     void initialize();
     bool validateAll(void);
     bool validate(const std::string& tableName);
+	void verifyNumOfSets(uint32_t numOfSets);
+	void verifyNumOfCards(uint32_t numOfCards);
+	bool doSetsNeedUpdate();
+	bool doCardsNeedUpdate();
     void getTableCol(const std::string& tableName, const std::string& col);
     void getTable(const std::string& tableName);
     void insertCardSet(const CardSet& cardSet);
     void insertCard(const Card& card);
 
 private:
+	bool setsOutOfDate;
+	bool cardsOutOfDate;
+
     void createTable(const std::string& tableName, const std::string& fields);
     void dropTable(const std::string& tableName);
 
@@ -50,8 +58,8 @@ private:
     void insertRuling(const Legality& legality);
     template <typename T, typename U>
     void buildJunction(const std::string& sql, const T& firstPrimary, const U& secondPrimary);
-    template <typename T, typename U, typename Y>
-    void buildJunction(const std::string& sql, const T& firstPrimary, const U& secondPrimary, const Y& thirdPrimary);
+    template <typename T, typename U, typename V>
+    void buildJunction(const std::string& sql, const T& firstPrimary, const U& secondPrimary, const V& thirdPrimary);
     // void buildJunction(const std::string& sql, const std::string& firstPrimary, const std::string& secondPrimary);
     // void buildJunction(const std::string& sql, const uint32_t firstPrimary, const std::string& secondPrimary);
     // void buildJunction(const std::string& sql, const std::string& firstPrimary, const uint32_t secondPrimary);

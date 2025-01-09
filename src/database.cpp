@@ -1,5 +1,4 @@
 #include "database.hpp"
-#include "download.hpp"
 #include <spdlog/spdlog.h>
 
 Database::Database(const std::string& dbLoc) {
@@ -191,6 +190,24 @@ bool Database::validate(const std::string& tableName) {
         SPDLOG_TRACE("{}", e.what());
         exit(EXIT_FAILURE);
     }
+}
+	
+void Database::verifyNumOfSets(uint32_t numOfSets) {
+	setsOutOfDate = numOfSets != 0;
+	return;
+}
+
+void Database::verifyNumOfCards(uint32_t numOfCards) {
+	cardsOutOfDate = numOfCards != 0;
+	return;
+}
+
+bool Database::doSetsNeedUpdate() {
+	return setsOutOfDate;
+}
+
+bool Database::doCardsNeedUpdate() {
+	return cardsOutOfDate;
 }
 
 void Database::getTableCol(const std::string& tableName, const std::string& col) {

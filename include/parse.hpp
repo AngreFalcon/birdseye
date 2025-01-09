@@ -1,10 +1,8 @@
 #pragma once
 #include "datastructs/card.hpp"
 #include "datastructs/cardset.hpp"
-#include <BS_thread_pool.hpp>
 #include <nlohmann/json.hpp>
 #include <stack>
-#include <queue>
 
 using json = nlohmann::json;
 

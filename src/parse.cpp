@@ -1,4 +1,3 @@
-#include "database.hpp"
 #include "parse.hpp"
 #include <spdlog/spdlog.h>
 #include <cstdio>
