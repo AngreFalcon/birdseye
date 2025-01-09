@@ -2,11 +2,11 @@
 #include <cstdint>
 
 struct MultiverseID {
-	MultiverseID(uint32_t id) {
-		this->id = id;
-	};
-	MultiverseID(void) = default;
-	~MultiverseID() = default;
+    MultiverseID(uint32_t id) {
+        this->id = id;
+    };
+    MultiverseID(void) = default;
+    ~MultiverseID() = default;
 
-	uint32_t id;
+    uint32_t id;
 };

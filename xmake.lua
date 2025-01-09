@@ -5,7 +5,7 @@ if #os.dirs("lib/*") > 0 then
     includes("lib/**/xmake.lua")
 end
 
-local sharedPackages = { "spdlog", "sqlitecpp", "libcurl", "nlohmann_json" }
+local sharedPackages = { "spdlog", "sqlitecpp", "libcurl", "nlohmann_json", "thread-pool" }
 local releasePackages = {}
 local debugPackages = {}
 

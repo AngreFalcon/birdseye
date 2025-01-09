@@ -1,48 +1,13 @@
 #include "database.hpp"
 #include "download.hpp"
-#include <chrono>
 #include <spdlog/spdlog.h>
-#include <thread>
 
-void populateDB(Database& db) {
-    retrieveSets(db);
-    retrieveCards(db);
-    return;
+Database::Database(const std::string& dbLoc) {
+    this->connection = std::unique_ptr<SQLite::Database>(new SQLite::Database(dbLoc, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE));
 }
 
-void retrieveSets(Database& db) {
-    std::string rawJSON = downloadData("https://api.scryfall.com/sets");
-    std::this_thread::sleep_for(std::chrono::milliseconds(100)); // ensure we respect scryfall's API guidelines by waiting at least 100 milliseconds before we can possibly initiate another connection
-    
-	json j = json::parse(rawJSON, nullptr, false);
-    for (const auto& i : j["data"].items()) {
-        db.insertCardSet(i.value());
-    }
-    return;
-}
-
-void retrieveCards(Database& db) {
-    std::string cacheFile = "./download-cache.json";
-    getBulkDownload("https://api.scryfall.com/bulk-data/oracle-cards", cacheFile);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100)); // ensure we respect scryfall's API guidelines by waiting at least 100 milliseconds before we can possibly initiate another connection
-
-    sax_event_consumer sec;
-    sec.db = &db;
-    FILE* file;
-    fopen_s(&file, cacheFile.c_str(), "r");
-    bool result = json::sax_parse(file, &sec);
-    if (!result) {
-        // json file structure turned out invalid
-    }
-    if (std::filesystem::exists(cacheFile)) {
-        std::filesystem::remove(cacheFile);
-    }
-    return;
-}
-
-void Database::initialize(const std::string& fileName) {
+void Database::initialize() {
     SPDLOG_TRACE("initialize");
-    this->connection = new SQLite::Database(fileName, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     if (validateAll())
         return;
     createTable("Artist",
@@ -213,7 +178,7 @@ void Database::initialize(const std::string& fileName) {
 bool Database::validateAll(void) {
     std::array tables = { "Artist", "PromoType", "CardSet", "Card", "Face", "Color", "Finish", "FrameEffect", "Legality", "ImageURI", "Keyword", "MultiverseID", "RelatedCardObject" };
     for (std::string i : tables) {
-        if (!this->validate(i))
+        if (!validate(i))
             return false;
     }
     return true;
@@ -221,7 +186,7 @@ bool Database::validateAll(void) {
 
 bool Database::validate(const std::string& tableName) {
     try {
-        return this->connection->tableExists(tableName);
+        return connection->tableExists(tableName);
     } catch (std::exception& e) {
         SPDLOG_TRACE("{}", e.what());
         exit(EXIT_FAILURE);
@@ -230,7 +195,7 @@ bool Database::validate(const std::string& tableName) {
 
 void Database::getTableCol(const std::string& tableName, const std::string& col) {
     try {
-        SQLite::Statement stmt(*this->connection, "SELECT " + col + " FROM " + tableName);
+        SQLite::Statement stmt(*connection, "SELECT " + col + " FROM " + tableName);
         uint32_t colNum = stmt.getColumnIndex(col.c_str());
         while (stmt.executeStep()) {
             SPDLOG_TRACE("{}: {}", col, stmt.getColumn(colNum).getString());
@@ -244,7 +209,7 @@ void Database::getTableCol(const std::string& tableName, const std::string& col)
 
 void Database::getTable(const std::string& tableName) {
     try {
-        SQLite::Statement stmt(*this->connection, "SELECT * FROM " + tableName);
+        SQLite::Statement stmt(*connection, "SELECT * FROM " + tableName);
         uint32_t numCols = stmt.getColumnCount();
         std::vector<std::string> colNames;
         for (uint32_t i = 0; i < numCols; i++) {
@@ -277,8 +242,8 @@ void Database::createTable(const std::string& tableName, const std::string& fiel
     dropTable(tableName);
     std::string sql = "CREATE TABLE " + tableName + " (" + fields + ");";
     try {
-        SQLite::Transaction transaction(*this->connection);
-        this->connection->exec(sql);
+        SQLite::Transaction transaction(*connection);
+        connection->exec(sql);
         transaction.commit();
     } catch (std::exception& e) {
         SPDLOG_TRACE("{}", e.what());
@@ -290,8 +255,8 @@ void Database::createTable(const std::string& tableName, const std::string& fiel
 void Database::dropTable(const std::string& tableName) {
     std::string sql = "DROP TABLE IF EXISTS " + tableName;
     try {
-        SQLite::Transaction transaction(*this->connection);
-        this->connection->exec(sql);
+        SQLite::Transaction transaction(*connection);
+        connection->exec(sql);
         transaction.commit();
     } catch (std::exception& e) {
         SPDLOG_TRACE("{}", e.what());
@@ -300,64 +265,28 @@ void Database::dropTable(const std::string& tableName) {
     return;
 }
 
-std::vector<std::string> Database::separateArtistNames(const std::string& names) {
-    std::vector<std::string> artistNames = { "" };
-    for (int i = 0; i < names.size(); i++) {
-        if (names[i] == '&') {
-            artistNames.emplace_back();
-        }
-        else if (i > 0 && names[i] == ' ' && names[i - 1] == '&') {
-            continue;
-        }
-        else {
-            artistNames.back() += names[i];
-        }
-    }
-    for (std::string i : artistNames) {
-        while (i.back() == ' ') {
-            i.pop_back();
-        }
-    }
-    return artistNames;
-}
-
 void Database::bindOpt(SQLite::Statement& stmt, uint32_t ind, std::optional<std::string> val) {
-    if (val.has_value()) {
-        stmt.bind(ind, val.value());
-    }
-    else {
-        stmt.bind(ind);
-    }
+    val.has_value() ? stmt.bind(ind, val.value()) : stmt.bind(ind);
     return;
 }
 
 void Database::bindOpt(SQLite::Statement& stmt, uint32_t ind, std::optional<uint32_t> val) {
-    if (val.has_value()) {
-        stmt.bind(ind, val.value());
-    }
-    else {
-        stmt.bind(ind);
+	try {
+    val.has_value() ? stmt.bind(ind, val.value()) : stmt.bind(ind);
+    } catch (std::exception& e) {
+        SPDLOG_TRACE("{}", e.what());
+        exit(EXIT_FAILURE);
     }
     return;
 }
 
 void Database::bindOpt(SQLite::Statement& stmt, uint32_t ind, std::optional<bool> val) {
-    if (val.has_value()) {
-        stmt.bind(ind, val.value());
-    }
-    else {
-        stmt.bind(ind);
-    }
+    val.has_value() ? stmt.bind(ind, val.value()) : stmt.bind(ind);
     return;
 }
 
 void Database::bindOpt(SQLite::Statement& stmt, uint32_t ind, std::optional<double> val) {
-    if (val.has_value()) {
-        stmt.bind(ind, val.value());
-    }
-    else {
-        stmt.bind(ind);
-    }
+    val.has_value() ? stmt.bind(ind, val.value()) : stmt.bind(ind);
     return;
 }
 
@@ -374,8 +303,7 @@ void Database::resetSql(SQLite::Statement& stmt) {
 
 void Database::executeSql(SQLite::Statement& stmt) {
     try {
-        while (stmt.executeStep())
-            ;
+        while (stmt.executeStep());
     } catch (std::exception& e) {
         SPDLOG_TRACE("{}", e.what());
         exit(EXIT_FAILURE);
@@ -387,7 +315,7 @@ uint32_t Database::executeInsertGetInt(SQLite::Statement& stmt, uint32_t col) {
     uint32_t result;
     try {
         stmt.executeStep();
-        result = stmt.getColumn(col);
+    	result = stmt.getColumn(col);
     } catch (std::exception& e) {
         SPDLOG_TRACE("{}", e.what());
         exit(EXIT_FAILURE);
@@ -397,7 +325,7 @@ uint32_t Database::executeInsertGetInt(SQLite::Statement& stmt, uint32_t col) {
 
 void Database::insertArtist(const Artist& artist, const uint32_t faceId) {
     std::string sql = "INSERT OR IGNORE INTO Artist(id, name) VALUES (?,?);";
-    SQLite::Statement stmt(*this->connection, sql);
+    SQLite::Statement stmt(*connection, sql);
     stmt.bind(1, artist.id);
     stmt.bind(2, artist.name);
     buildJunction("INSERT INTO Face_Artist(face_id,artist_id) VALUES (?,?);", faceId, artist.id);
@@ -406,9 +334,9 @@ void Database::insertArtist(const Artist& artist, const uint32_t faceId) {
 }
 
 void Database::insertCardSet(const CardSet& cardSet) {
-    std::string sql = "INSERT INTO CardSet(id,code,name,set_type,card_count,digital,foil_only,nonfoil_only,icon_svg_uri,mtgo_code,arena_code,tcgplayer_id,released_at,block_code,block,parent_set_code,printed_siz) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
-    SQLite::Statement stmt(*this->connection, sql);
-    stmt.bind(1, cardSet.id);
+    std::string sql = "INSERT INTO CardSet(id,code,name,set_type,card_count,digital,foil_only,nonfoil_only,icon_svg_uri,mtgo_code,arena_code,tcgplayer_id,released_at,block_code,block,parent_set_code,printed_size) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+    SQLite::Statement stmt(*connection, sql);
+	stmt.bind(1, cardSet.id);
     stmt.bind(2, cardSet.code);
     stmt.bind(3, cardSet.name);
     stmt.bind(4, cardSet.set_type);
@@ -417,14 +345,14 @@ void Database::insertCardSet(const CardSet& cardSet) {
     stmt.bind(7, cardSet.foil_only);
     stmt.bind(8, cardSet.nonfoil_only);
     stmt.bind(9, cardSet.icon_svg_uri);
-    bindOpt(stmt, 11, cardSet.mtgo_code);
-    bindOpt(stmt, 12, cardSet.arena_code);
-    bindOpt(stmt, 13, cardSet.tcgplayer_id);
-    bindOpt(stmt, 14, cardSet.released_at);
-    bindOpt(stmt, 15, cardSet.block_code);
-    bindOpt(stmt, 16, cardSet.block);
-    bindOpt(stmt, 17, cardSet.parent_set_code);
-    bindOpt(stmt, 18, cardSet.printed_size);
+    bindOpt(stmt, 10, cardSet.mtgo_code);
+    bindOpt(stmt, 11, cardSet.arena_code);
+    bindOpt(stmt, 12, cardSet.tcgplayer_id);
+    bindOpt(stmt, 13, cardSet.released_at);
+    bindOpt(stmt, 14, cardSet.block_code);
+    bindOpt(stmt, 15, cardSet.block);
+    bindOpt(stmt, 16, cardSet.parent_set_code);
+    bindOpt(stmt, 17, cardSet.printed_size);
     executeSql(stmt);
     return;
 }
@@ -432,7 +360,7 @@ void Database::insertCardSet(const CardSet& cardSet) {
 void Database::insertCard(const Card& card) {
     SPDLOG_TRACE("entered insert card");
     std::string sql = "INSERT INTO Card("
-                      "id"
+                      "id, "
                       "name,"
                       "lang,"
                       "layout,"
@@ -478,8 +406,8 @@ void Database::insertCard(const Card& card) {
                       "variation_of,"
                       "security_stamp"
                       ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
-    SQLite::Statement stmt(*this->connection, sql);
-
+	SQLite::Transaction transaction(*connection);
+    SQLite::Statement stmt(*connection, sql);
     // core fields
     stmt.bind(1, card.id);
     stmt.bind(2, card.name);
@@ -529,7 +457,7 @@ void Database::insertCard(const Card& card) {
     executeSql(stmt);
     for (const Color& c : card.color_identity) {
         insertColor(c);
-        buildJunction("INSERT Card_ColorIdentity(card_id,color_id) VALUES (?,?);", card.id, c.color);
+        buildJunction("INSERT INTO Card_ColorIdentity(card_id,color_id) VALUES (?,?);", card.id, c.color);
     }
     for (const Color& c : card.produced_mana) {
         insertColor(c);
@@ -559,18 +487,19 @@ void Database::insertCard(const Card& card) {
     for (const RelatedCardObject& relatedCardObject : card.all_parts) {
         insertRelatedCardObject(relatedCardObject, card.id);
     }
+	transaction.commit();
     return;
 }
 
 void Database::insertColor(const Color& color) {
     std::string sql = "INSERT OR IGNORE INTO Color(id) VALUES (?);";
-    SQLite::Statement stmt(*this->connection, sql);
+    SQLite::Statement stmt(*connection, sql);
     stmt.bind(1, color.color);
     executeSql(stmt);
     return;
 }
 
-std::string Database::insertFace(const Face& face, const std::string& cardId) {
+void Database::insertFace(const Face& face, const std::string& cardId) {
     std::string sql = "INSERT INTO Face("
                       "card_id,"
                       "mana_cost,"
@@ -590,7 +519,7 @@ std::string Database::insertFace(const Face& face, const std::string& cardId) {
                       "type_line,"
                       "watermark,"
                       "image_uris) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) RETURNING *;";
-    SQLite::Statement stmt(*this->connection, sql);
+    SQLite::Statement stmt(*connection, sql);
     stmt.bind(1, cardId);
     stmt.bind(2, face.mana_cost);
     stmt.bind(3, face.name);
@@ -608,6 +537,8 @@ std::string Database::insertFace(const Face& face, const std::string& cardId) {
     bindOpt(stmt, 15, face.toughness);
     bindOpt(stmt, 16, face.type_line);
     bindOpt(stmt, 17, face.watermark);
+    std::optional<uint32_t> imageUriId = face.image_uris ? std::optional(insertImageURI(face.image_uris.value())) : std::nullopt;
+    bindOpt(stmt, 18, imageUriId);
     uint32_t id = executeInsertGetInt(stmt, 0);
     for (const Artist& a : face.artists) {
         insertArtist(a, id);
@@ -620,14 +551,12 @@ std::string Database::insertFace(const Face& face, const std::string& cardId) {
         insertColor(c);
         buildJunction("INSERT INTO Face_Colors(face_id,color_id) VALUES (?,?);", id, c.color);
     }
-    std::optional<uint32_t> imageUriId = face.image_uris ? std::optional(insertImageURI(face.image_uris.value())) : std::nullopt;
-    bindOpt(stmt, 18, imageUriId);
-    return std::to_string(id);
+    return;
 }
 
 void Database::insertFinish(const Finish& finish, const std::string& cardId) {
     std::string sql = "INSERT OR IGNORE INTO Finish(type) VALUES (?);";
-    SQLite::Statement stmt(*this->connection, sql);
+    SQLite::Statement stmt(*connection, sql);
     stmt.bind(1, finish.type);
     executeSql(stmt);
     buildJunction("INSERT INTO Card_Finish(card_id,type) VALUES (?,?);", cardId, finish.type);
@@ -636,14 +565,14 @@ void Database::insertFinish(const Finish& finish, const std::string& cardId) {
 
 void Database::insertFormat(const Legality& legality) {
     std::string sql = "INSERT OR IGNORE INTO Format(name) VALUES (?);";
-    SQLite::Statement stmt(*this->connection, sql);
+    SQLite::Statement stmt(*connection, sql);
     stmt.bind(1, legality.format);
     return;
 }
 
 void Database::insertFrameEffect(const FrameEffect& frameEffect, const std::string& cardId) {
     std::string sql = "INSERT OR IGNORE INTO FrameEffect(type) VALUES (?);";
-    SQLite::Statement stmt(*this->connection, sql);
+    SQLite::Statement stmt(*connection, sql);
     stmt.bind(1, frameEffect.type);
     executeSql(stmt);
     buildJunction("INSERT INTO Card_FrameEffect(card_id,type) VALUES (?,?);", cardId, frameEffect.type);
@@ -651,15 +580,15 @@ void Database::insertFrameEffect(const FrameEffect& frameEffect, const std::stri
 }
 
 void Database::insertLegality(const Legality& legality, const std::string& cardId) {
-	insertFormat(legality);
-	insertRuling(legality);
+    insertFormat(legality);
+    insertRuling(legality);
     buildJunction("INSERT INTO Card_Format_Ruling(card_id,format_id,ruling_id) VALUES (?,?,?);", cardId, legality.format, legality.ruling);
     return;
 }
 
 uint32_t Database::insertImageURI(const ImageURI& imageUri) {
-    std::string sql = "INSERT INTO ImageURI(small,normal,large,png,art_crop,border_crop) VALUES (?,?,?,?,?,?);";
-    SQLite::Statement stmt(*this->connection, sql);
+    std::string sql = "INSERT INTO ImageURI(small,normal,large,png,art_crop,border_crop) VALUES (?,?,?,?,?,?) RETURNING *;";
+    SQLite::Statement stmt(*connection, sql);
     stmt.bind(1, imageUri.small);
     stmt.bind(2, imageUri.normal);
     stmt.bind(3, imageUri.large);
@@ -671,7 +600,7 @@ uint32_t Database::insertImageURI(const ImageURI& imageUri) {
 
 void Database::insertKeyword(const Keyword& keyword, const std::string& cardId) {
     std::string sql = "INSERT OR IGNORE INTO Keyword(name) VALUES (?);";
-    SQLite::Statement stmt(*this->connection, sql);
+    SQLite::Statement stmt(*connection, sql);
     stmt.bind(1, keyword.name);
     buildJunction("INSERT INTO Card_Keyword(card_id,name) VALUES (?,?);", cardId, keyword.name);
     executeSql(stmt);
@@ -680,7 +609,7 @@ void Database::insertKeyword(const Keyword& keyword, const std::string& cardId) 
 
 void Database::insertMultiverseID(const MultiverseID& multiverseId, const std::string& cardId) {
     std::string sql = "INSERT INTO MultiverseID(id,card_id) VALUES (?,?);";
-    SQLite::Statement stmt(*this->connection, sql);
+    SQLite::Statement stmt(*connection, sql);
     stmt.bind(1, multiverseId.id);
     stmt.bind(2, cardId);
     executeSql(stmt);
@@ -689,7 +618,7 @@ void Database::insertMultiverseID(const MultiverseID& multiverseId, const std::s
 
 void Database::insertPromoType(const PromoType& promoType, const std::string& cardId) {
     std::string sql = "INSERT OR IGNORE INTO PromoType(type) VALUES (?);";
-    SQLite::Statement stmt(*this->connection, sql);
+    SQLite::Statement stmt(*connection, sql);
     stmt.bind(1, promoType.type);
     buildJunction("INSERT INTO Card_PromoType(card_id,promo_type) VALUES (?,?);", cardId, promoType.type);
     executeSql(stmt);
@@ -698,7 +627,7 @@ void Database::insertPromoType(const PromoType& promoType, const std::string& ca
 
 void Database::insertRelatedCardObject(const RelatedCardObject& relatedCardObject, const std::string& cardId) {
     std::string sql = "INSERT OR IGNORE INTO RelatedCardObject(id,component,name,type_line) VALUES (?,?,?,?);";
-    SQLite::Statement stmt(*this->connection, sql);
+    SQLite::Statement stmt(*connection, sql);
     stmt.bind(1, relatedCardObject.id);
     stmt.bind(2, relatedCardObject.component);
     stmt.bind(3, relatedCardObject.name);
@@ -709,16 +638,16 @@ void Database::insertRelatedCardObject(const RelatedCardObject& relatedCardObjec
 }
 
 void Database::insertRuling(const Legality& legality) {
-	std::string sql = "INSERT OR IGNORE INTO Ruling(ruling) VALUES (?);";
-	SQLite::Statement stmt(*this->connection, sql);
-	stmt.bind(1, legality.ruling);
-	executeSql(stmt);
-	return;
+    std::string sql = "INSERT OR IGNORE INTO Ruling(ruling) VALUES (?);";
+    SQLite::Statement stmt(*connection, sql);
+    stmt.bind(1, legality.ruling);
+    executeSql(stmt);
+    return;
 }
 
 template <typename T, typename U>
 void Database::buildJunction(const std::string& sql, const T& firstPrimary, const U& secondPrimary) {
-    SQLite::Statement stmt(*this->connection, sql);
+    SQLite::Statement stmt(*connection, sql);
     stmt.bind(1, firstPrimary);
     stmt.bind(2, secondPrimary);
     executeSql(stmt);
@@ -727,10 +656,10 @@ void Database::buildJunction(const std::string& sql, const T& firstPrimary, cons
 
 template <typename T, typename U, typename V>
 void Database::buildJunction(const std::string& sql, const T& firstPrimary, const U& secondPrimary, const V& thirdPrimary) {
-    SQLite::Statement stmt(*this->connection, sql);
+    SQLite::Statement stmt(*connection, sql);
     stmt.bind(1, firstPrimary);
     stmt.bind(2, secondPrimary);
-	stmt.bind(3, thirdPrimary);
+    stmt.bind(3, thirdPrimary);
     executeSql(stmt);
     return;
 }
