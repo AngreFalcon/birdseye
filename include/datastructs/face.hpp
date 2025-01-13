@@ -22,8 +22,8 @@ struct Face {
     std::optional<ImageURI> image_uris;
     std::optional<std::string> layout;
     std::optional<std::string> loyalty;
-    std::string mana_cost;
-    std::string name;
+    std::optional<std::string> mana_cost;
+    std::optional<std::string> name;
     std::optional<std::string> oracle_id;
     std::optional<std::string> oracle_text;
     std::optional<std::string> power;
@@ -68,8 +68,8 @@ inline Face::Face(const json& obj) {
     }
     this->layout = obj.contains("layout") ? std::optional(obj["layout"]) : std::nullopt;
     this->loyalty = obj.contains("loyalty") ? std::optional(obj["loyalty"]) : std::nullopt;
-    this->mana_cost = obj.contains("mana_cost") ? obj["mana_cost"] : "";
-    this->name = obj["name"];
+    this->mana_cost = obj.contains("mana_cost") ? std::optional(obj["mana_cost"]) : std::nullopt;
+    this->name = obj.contains("name") ? std::optional(obj["name"]) : std::nullopt;
     this->oracle_id = obj.contains("oracle_id") ? std::optional(obj["oracle_id"]) : std::nullopt;
     this->oracle_text = obj.contains("oracle_text") ? std::optional(obj["oracle_text"]) : std::nullopt;
     this->power = obj.contains("power") ? std::optional(obj["power"]) : std::nullopt;

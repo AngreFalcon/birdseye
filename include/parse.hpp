@@ -32,7 +32,10 @@ public:
     bool parse_error(std::size_t position, const std::string& last_token, const json::exception& ex) override;
 
 private:
+	std::function<void(Card& c)> cardFunc;
     std::stack<json> workingObj;
     std::stack<std::string> keys;
-	std::function<void(Card& c)> cardFunc;
+
+	template <typename T>
+	void insertVal(T val);
 };

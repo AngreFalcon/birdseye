@@ -41,8 +41,6 @@ private:
     void executeSql(SQLite::Statement& stmt);
     uint32_t executeInsertGetInt(SQLite::Statement& stmt, uint32_t col);
 
-    // void insertArtistFromCard(const json& data, const std::string& faceId);
-    // void insertArtistFromFace(const json& data, const std::string& faceId);
     void insertArtist(const Artist& artist, const uint32_t faceId);
     void insertColor(const Color& color);
     void insertFace(const Face& face, const std::string& cardId);
@@ -60,23 +58,7 @@ private:
     void buildJunction(const std::string& sql, const T& firstPrimary, const U& secondPrimary);
     template <typename T, typename U, typename V>
     void buildJunction(const std::string& sql, const T& firstPrimary, const U& secondPrimary, const V& thirdPrimary);
-    // void buildJunction(const std::string& sql, const std::string& firstPrimary, const std::string& secondPrimary);
-    // void buildJunction(const std::string& sql, const uint32_t firstPrimary, const std::string& secondPrimary);
-    // void buildJunction(const std::string& sql, const std::string& firstPrimary, const uint32_t secondPrimary);
 
     template <typename T>
     std::optional<Card> getCardByCol(const std::string& colName, const T& colVal);
-    /*
-    void joinCard_ColorIdentity(const std::string& cardId, const std::string& colorIdentityId);
-    void joinCard_Legality(const std::string& cardId, const uint32_t legalityId);
-    void joinCard_Finish(const std::string& cardId, const std::string& finishType);
-    void joinCard_FrameEffect(const std::string& cardId, const std::string& frameEffectType);
-    void joinCard_Keyword(const std::string& cardId, const std::string& keywordName);
-    void joinCard_ProducedMana(const std::string& cardId, const std::string& producedManaId);
-    void joinCard_PromoType(const std::string& cardId, const std::string& promoType);
-    void joinCard_RelatedCardObject(const std::string& cardId, const std::string& relatedCardObjectId);
-    void joinFace_Artist(const uint32_t faceId, const std::string& artistId);
-    void joinFace_ColorIndicator(const uint32_t faceId, const std::string& colorIndicatorId);
-    void joinFace_Colors(const uint32_t faceId, const std::string& colorsId);
-    */
 };

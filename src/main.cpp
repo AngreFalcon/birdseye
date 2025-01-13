@@ -9,8 +9,7 @@ int main(int argc, char** argv) {
     spdlog::set_level(spdlog::level::trace);
     std::string dbLoc = "./birdseye.db3";
     Database db(dbLoc);
-	verifyDBIntegrality(db);
-    //initializeProgram(db);
+	initializeProgram(db);
     return EXIT_SUCCESS;
 }
 

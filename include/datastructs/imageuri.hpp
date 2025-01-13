@@ -5,20 +5,20 @@
 struct ImageURI {
     using json = nlohmann::json;
     inline ImageURI(const json& j) {
-        this->small = j["small"];
-        this->normal = j["normal"];
-        this->large = j["large"];
-        this->png = j["png"];
-        this->art_crop = j["art_crop"];
-        this->border_crop = j["border_crop"];
+        this->small = j.contains("small") ? std::optional(j["small"]) : std::nullopt;
+        this->normal = j.contains("normal") ? std::optional(j["normal"]) : std::nullopt;
+        this->large = j.contains("large") ? std::optional(j["large"]) : std::nullopt;
+        this->png = j.contains("png") ? std::optional(j["png"]) : std::nullopt;
+        this->art_crop = j.contains("art_crop") ? std::optional(j["art_crop"]) : std::nullopt;
+        this->border_crop = j.contains("border_crop") ? std::optional(j["border_crop"]) : std::nullopt;
     }
     ImageURI(void) = default;
     ~ImageURI() = default;
 
-    std::string small;
-    std::string normal;
-    std::string large;
-    std::string png;
-    std::string art_crop;
-    std::string border_crop;
+    std::optional<std::string> small;
+    std::optional<std::string> normal;
+    std::optional<std::string> large;
+    std::optional<std::string> png;
+    std::optional<std::string> art_crop;
+    std::optional<std::string> border_crop;
 };

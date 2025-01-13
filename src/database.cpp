@@ -2,7 +2,7 @@
 #include <spdlog/spdlog.h>
 
 Database::Database(const std::string& dbLoc) {
-    this->connection = std::unique_ptr<SQLite::Database>(new SQLite::Database(dbLoc, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE));
+    connection = std::unique_ptr<SQLite::Database>(new SQLite::Database(dbLoc, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE));
 }
 
 void Database::initialize() {
@@ -353,15 +353,15 @@ void Database::insertArtist(const Artist& artist, const uint32_t faceId) {
 void Database::insertCardSet(const CardSet& cardSet) {
     std::string sql = "INSERT INTO CardSet(id,code,name,set_type,card_count,digital,foil_only,nonfoil_only,icon_svg_uri,mtgo_code,arena_code,tcgplayer_id,released_at,block_code,block,parent_set_code,printed_size) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     SQLite::Statement stmt(*connection, sql);
-	stmt.bind(1, cardSet.id);
-    stmt.bind(2, cardSet.code);
-    stmt.bind(3, cardSet.name);
-    stmt.bind(4, cardSet.set_type);
-    stmt.bind(5, cardSet.card_count);
-    stmt.bind(6, cardSet.digital);
-    stmt.bind(7, cardSet.foil_only);
-    stmt.bind(8, cardSet.nonfoil_only);
-    stmt.bind(9, cardSet.icon_svg_uri);
+	bindOpt(stmt, 1, cardSet.id);
+    bindOpt(stmt, 2, cardSet.code);
+    bindOpt(stmt, 3, cardSet.name);
+    bindOpt(stmt, 4, cardSet.set_type);
+    bindOpt(stmt, 5, cardSet.card_count);
+    bindOpt(stmt, 6, cardSet.digital);
+    bindOpt(stmt, 7, cardSet.foil_only);
+    bindOpt(stmt, 8, cardSet.nonfoil_only);
+    bindOpt(stmt, 9, cardSet.icon_svg_uri);
     bindOpt(stmt, 10, cardSet.mtgo_code);
     bindOpt(stmt, 11, cardSet.arena_code);
     bindOpt(stmt, 12, cardSet.tcgplayer_id);
@@ -426,32 +426,32 @@ void Database::insertCard(const Card& card) {
 	SQLite::Transaction transaction(*connection);
     SQLite::Statement stmt(*connection, sql);
     // core fields
-    stmt.bind(1, card.id);
-    stmt.bind(2, card.name);
-    stmt.bind(3, card.lang);
-    stmt.bind(4, card.layout);
-    stmt.bind(5, card.rulings_uri);
-    stmt.bind(6, card.scryfall_uri);
-    stmt.bind(7, card.cmc);
-    stmt.bind(8, card.reserved);
-    stmt.bind(9, card.type_line);
-    stmt.bind(10, card.booster);
-    stmt.bind(11, card.border_color);
-    stmt.bind(12, card.collector_number);
-    stmt.bind(13, card.digital);
-    stmt.bind(14, card.frame);
-    stmt.bind(15, card.full_art);
-    stmt.bind(16, card.highres_image);
-    stmt.bind(17, card.image_status);
-    stmt.bind(18, card.oversized);
-    stmt.bind(19, card.promo);
-    stmt.bind(20, card.rarity);
-    stmt.bind(21, card.released_at);
-    stmt.bind(22, card.reprint);
-    stmt.bind(23, card.set_id);
-    stmt.bind(24, card.story_spotlight);
-    stmt.bind(25, card.textless);
-    stmt.bind(26, card.variation);
+    bindOpt(stmt, 1, card.id);
+    bindOpt(stmt, 2, card.name);
+    bindOpt(stmt, 3, card.lang);
+    bindOpt(stmt, 4, card.layout);
+    bindOpt(stmt, 5, card.rulings_uri);
+    bindOpt(stmt, 6, card.scryfall_uri);
+    bindOpt(stmt, 7, card.cmc);
+    bindOpt(stmt, 8, card.reserved);
+    bindOpt(stmt, 9, card.type_line);
+    bindOpt(stmt, 10, card.booster);
+    bindOpt(stmt, 11, card.border_color);
+    bindOpt(stmt, 12, card.collector_number);
+    bindOpt(stmt, 13, card.digital);
+    bindOpt(stmt, 14, card.frame);
+    bindOpt(stmt, 15, card.full_art);
+    bindOpt(stmt, 16, card.highres_image);
+    bindOpt(stmt, 17, card.image_status);
+    bindOpt(stmt, 18, card.oversized);
+    bindOpt(stmt, 19, card.promo);
+    bindOpt(stmt, 20, card.rarity);
+    bindOpt(stmt, 21, card.released_at);
+    bindOpt(stmt, 22, card.reprint);
+    bindOpt(stmt, 23, card.set_id);
+    bindOpt(stmt, 24, card.story_spotlight);
+    bindOpt(stmt, 25, card.textless);
+    bindOpt(stmt, 26, card.variation);
     bindOpt(stmt, 27, card.arena_id);
     bindOpt(stmt, 28, card.mtgo_id);
     bindOpt(stmt, 29, card.mtgo_foil_id);
@@ -474,35 +474,35 @@ void Database::insertCard(const Card& card) {
     executeSql(stmt);
     for (const Color& c : card.color_identity) {
         insertColor(c);
-        buildJunction("INSERT INTO Card_ColorIdentity(card_id,color_id) VALUES (?,?);", card.id, c.color);
+        buildJunction("INSERT INTO Card_ColorIdentity(card_id,color_id) VALUES (?,?);", card.id.value(), c.color);
     }
     for (const Color& c : card.produced_mana) {
         insertColor(c);
-        buildJunction("INSERT INTO Card_ProducedMana(card_id,color_id) VALUES (?,?);", card.id, c.color);
+        buildJunction("INSERT INTO Card_ProducedMana(card_id,color_id) VALUES (?,?);", card.id.value(), c.color);
     }
     for (const Face& face : card.card_faces) {
-        insertFace(face, card.id);
+        insertFace(face, card.id.value());
     }
     for (const Finish& finish : card.finishes) {
-        insertFinish(finish, card.id);
+        insertFinish(finish, card.id.value());
     }
     for (const Legality& legality : card.legalities) {
-        insertLegality(legality, card.id);
+        insertLegality(legality, card.id.value());
     }
     for (const FrameEffect& frameEffect : card.frame_effects) {
-        insertFrameEffect(frameEffect, card.id);
+        insertFrameEffect(frameEffect, card.id.value());
     }
     for (const Keyword& keyword : card.keywords) {
-        insertKeyword(keyword, card.id);
+        insertKeyword(keyword, card.id.value());
     }
     for (const MultiverseID& multiverseId : card.multiverse_ids) {
-        insertMultiverseID(multiverseId, card.id);
+        insertMultiverseID(multiverseId, card.id.value());
     }
     for (const PromoType& promoType : card.promo_types) {
-        insertPromoType(promoType, card.id);
+        insertPromoType(promoType, card.id.value());
     }
     for (const RelatedCardObject& relatedCardObject : card.all_parts) {
-        insertRelatedCardObject(relatedCardObject, card.id);
+        insertRelatedCardObject(relatedCardObject, card.id.value());
     }
 	transaction.commit();
     return;
@@ -537,9 +537,9 @@ void Database::insertFace(const Face& face, const std::string& cardId) {
                       "watermark,"
                       "image_uris) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) RETURNING *;";
     SQLite::Statement stmt(*connection, sql);
-    stmt.bind(1, cardId);
-    stmt.bind(2, face.mana_cost);
-    stmt.bind(3, face.name);
+    bindOpt(stmt, 1, cardId);
+    bindOpt(stmt, 2, face.mana_cost);
+    bindOpt(stmt, 3, face.name);
     bindOpt(stmt, 4, face.cmc);
     bindOpt(stmt, 5, face.defense);
     bindOpt(stmt, 6, face.flavor_text);
@@ -606,12 +606,12 @@ void Database::insertLegality(const Legality& legality, const std::string& cardI
 uint32_t Database::insertImageURI(const ImageURI& imageUri) {
     std::string sql = "INSERT INTO ImageURI(small,normal,large,png,art_crop,border_crop) VALUES (?,?,?,?,?,?) RETURNING *;";
     SQLite::Statement stmt(*connection, sql);
-    stmt.bind(1, imageUri.small);
-    stmt.bind(2, imageUri.normal);
-    stmt.bind(3, imageUri.large);
-    stmt.bind(4, imageUri.png);
-    stmt.bind(5, imageUri.art_crop);
-    stmt.bind(6, imageUri.border_crop);
+    bindOpt(stmt, 1, imageUri.small);
+    bindOpt(stmt, 2, imageUri.normal);
+    bindOpt(stmt, 3, imageUri.large);
+    bindOpt(stmt, 4, imageUri.png);
+    bindOpt(stmt, 5, imageUri.art_crop);
+    bindOpt(stmt, 6, imageUri.border_crop);
     return executeInsertGetInt(stmt, 0);
 }
 
@@ -625,7 +625,7 @@ void Database::insertKeyword(const Keyword& keyword, const std::string& cardId) 
 }
 
 void Database::insertMultiverseID(const MultiverseID& multiverseId, const std::string& cardId) {
-    std::string sql = "INSERT INTO MultiverseID(id,card_id) VALUES (?,?);";
+    std::string sql = "INSERT OR IGNORE INTO MultiverseID(id,card_id) VALUES (?,?);";
     SQLite::Statement stmt(*connection, sql);
     stmt.bind(1, multiverseId.id);
     stmt.bind(2, cardId);
@@ -645,11 +645,11 @@ void Database::insertPromoType(const PromoType& promoType, const std::string& ca
 void Database::insertRelatedCardObject(const RelatedCardObject& relatedCardObject, const std::string& cardId) {
     std::string sql = "INSERT OR IGNORE INTO RelatedCardObject(id,component,name,type_line) VALUES (?,?,?,?);";
     SQLite::Statement stmt(*connection, sql);
-    stmt.bind(1, relatedCardObject.id);
-    stmt.bind(2, relatedCardObject.component);
-    stmt.bind(3, relatedCardObject.name);
-    stmt.bind(4, relatedCardObject.type_line);
-    buildJunction("INSERT INTO Card_RelatedCardObject(card_id,relatedcardobject_id) VALUES (?,?);", cardId, relatedCardObject.id);
+    bindOpt(stmt, 1, relatedCardObject.id);
+    bindOpt(stmt, 2, relatedCardObject.component);
+    bindOpt(stmt, 3, relatedCardObject.name);
+    bindOpt(stmt, 4, relatedCardObject.type_line);
+    buildJunction("INSERT INTO Card_RelatedCardObject(card_id,relatedcardobject_id) VALUES (?,?);", cardId, relatedCardObject.id.value());
     executeSql(stmt);
     return;
 }
@@ -681,131 +681,6 @@ void Database::buildJunction(const std::string& sql, const T& firstPrimary, cons
     return;
 }
 
-// void Database::buildJunction(const std::string& sql, const std::string& firstPrimary, const std::string& secondPrimary) {
-//     SQLite::Statement stmt(*this->connection, sql);
-// 	stmt.bind(1, firstPrimary);
-// 	stmt.bind(2, secondPrimary);
-//     executeSql(stmt);
-//     return;
-// }
-
-// void Database::buildJunction(const std::string& sql, const uint32_t firstPrimary, const std::string& secondPrimary) {
-//     SQLite::Statement stmt(*this->connection, sql);
-// 	stmt.bind(1, firstPrimary);
-// 	stmt.bind(2, secondPrimary);
-//     executeSql(stmt);
-//     return;
-// }
-
-// void Database::buildJunction(const std::string& sql, const std::string& firstPrimary, const uint32_t secondPrimary) {
-//     SQLite::Statement stmt(*this->connection, sql);
-// 	stmt.bind(1, firstPrimary);
-// 	stmt.bind(2, secondPrimary);
-//     executeSql(stmt);
-//     return;
-// }
-
 template <typename T>
 std::optional<Card> getCardByCol(const std::string& colName, const T& colVal) {
 }
-
-/*
-void Database::joinCard_ColorIdentity(const std::string& cardId, const std::string& colorIdentityId) {
-    std::string sql = "INSERT INTO Card_ColorIdentity(card_id,color_id) VALUES (?,?);";
-    SQLite::Statement stmt(*this->connection, sql);
-        stmt.bind(1, cardId);
-        stmt.bind(1, colorIdentityId);
-    executeSql(stmt);
-    return;
-}
-
-void Database::joinCard_Legality(const std::string& cardId, const uint32_t legalityId) {
-    std::string sql = "INSERT INTO Card_Legality(card_id,legality_id) VALUES (?,?);";
-    SQLite::Statement stmt(*this->connection, sql);
-        stmt.bind(1, cardId);
-        stmt.bind(1, legalityId);
-    executeSql(stmt);
-    return;
-}
-
-void Database::joinCard_Finish(const std::string& cardId, const std::string& finishType) {
-    std::string sql = "INSERT INTO Card_Finish(card_id,type) VALUES (?,?);";
-    SQLite::Statement stmt(*this->connection, sql);
-        stmt.bind(1, cardId);
-        stmt.bind(1, finishType);
-    executeSql(stmt);
-    return;
-}
-
-void Database::joinCard_FrameEffect(const std::string& cardId, const std::string& frameEffectType) {
-    std::string sql = "INSERT INTO Card_FrameEffect(card_id,type) VALUES (?,?);";
-    SQLite::Statement stmt(*this->connection, sql);
-        stmt.bind(1, cardId);
-        stmt.bind(1, frameEffectType);
-    executeSql(stmt);
-    return;
-}
-
-void Database::joinCard_Keyword(const std::string& cardId, const std::string& keywordName) {
-    std::string sql = "INSERT INTO Card_Keyword(card_id,name) VALUES (?,?);";
-    SQLite::Statement stmt(*this->connection, sql);
-        stmt.bind(1, cardId);
-        stmt.bind(1, keywordName);
-    executeSql(stmt);
-    return;
-}
-
-void Database::joinCard_ProducedMana(const std::string& cardId, const std::string& producedManaId) {
-    std::string sql = "INSERT INTO Card_ProducedMana(card_id,color_id) VALUES (?,?);";
-    SQLite::Statement stmt(*this->connection, sql);
-        stmt.bind(1, cardId);
-        stmt.bind(1, producedManaId);
-    executeSql(stmt);
-    return;
-}
-
-void Database::joinCard_PromoType(const std::string& cardId, const std::string& promoType) {
-    std::string sql = "INSERT INTO Card_PromoType(card_id,promo_type) VALUES (?,?);";
-    SQLite::Statement stmt(*this->connection, sql);
-        stmt.bind(1, cardId);
-        stmt.bind(1, promoType);
-    executeSql(stmt);
-    return;
-}
-
-void Database::joinCard_RelatedCardObject(const std::string& cardId, const std::string& relatedCardObjectId) {
-    std::string sql = "INSERT INTO Card_RelatedCardObject(card_id,relatedcardobject_id) VALUES (?,?);";
-    SQLite::Statement stmt(*this->connection, sql);
-        stmt.bind(1, cardId);
-        stmt.bind(1, relatedCardObjectId);
-    executeSql(stmt);
-    return;
-}
-
-void Database::joinFace_Artist(const uint32_t faceId, const std::string& artistId) {
-    std::string sql = "INSERT INTO Face_Artist(face_id,artist_id) VALUES (?,?);";
-    SQLite::Statement stmt(*this->connection, sql);
-        stmt.bind(1, faceId);
-        stmt.bind(1, artistId);
-    executeSql(stmt);
-    return;
-}
-
-void Database::joinFace_ColorIndicator(const uint32_t faceId, const std::string& colorIndicatorId) {
-    std::string sql = "INSERT INTO Face_ColorIndicator(face_id,color_id) VALUES (?,?);";
-    SQLite::Statement stmt(*this->connection, sql);
-        stmt.bind(1, faceId);
-        stmt.bind(1, colorIndicatorId);
-    executeSql(stmt);
-    return;
-}
-
-void Database::joinFace_Colors(const uint32_t faceId, const std::string& colorsId) {
-    std::string sql = "INSERT INTO Face_Colors(face_id,color_id) VALUES (?,?);";
-    SQLite::Statement stmt(*this->connection, sql);
-        stmt.bind(1, faceId);
-        stmt.bind(1, colorsId);
-    executeSql(stmt);
-    return;
-}
-*/

@@ -7,7 +7,8 @@
 
 void verifyDBIntegrality(Database& db) {
 	json j = json::parse(downloadData("https://api.scryfall.com/sets"));
-	uint32_t numOfCards = 0;
+	std::this_thread::sleep_for(std::chrono::milliseconds(100)); // ensure we respect scryfall's API guidelines by waiting at least 100 milliseconds before we can possibly initiate another connection
+    uint32_t numOfCards = 0;
 	uint32_t numOfSets = 0;
 	for (auto& i : j["data"].items()) {
 		numOfCards += i.value()["card_count"];
@@ -36,8 +37,8 @@ void retrieveSets(Database& db) {
 }
 
 void retrieveCards(Database& db) {
-    std::string cacheFile = "./all-cards.json"; // std::string cacheFile = "./download-cache.json";
-    // getBulkDownload("https://api.scryfall.com/bulk-data/oracle-cards", cacheFile);
+    std::string cacheFile = "./download-cache.json";
+    getBulkDownload("https://api.scryfall.com/bulk-data/default_cards", cacheFile);
     std::this_thread::sleep_for(std::chrono::milliseconds(100)); // ensure we respect scryfall's API guidelines by waiting at least 100 milliseconds before we can possibly initiate another connection
     parseCards(cacheFile, [&db](Card& c) {
     	BS::thread_pool tp(std::thread::hardware_concurrency() - 1);
@@ -50,7 +51,8 @@ void retrieveCards(Database& db) {
     });
 
     if (std::filesystem::exists(cacheFile)) {
-        //std::filesystem::remove(cacheFile);
+		SPDLOG_TRACE("download cache removed");
+        std::filesystem::remove(cacheFile);
     }
     return;
 }
