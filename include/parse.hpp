@@ -7,7 +7,7 @@
 using json = nlohmann::json;
 
 std::vector<CardSet> parseSets(const std::string& jsonSrc);
-void parseCards(const std::string& cacheFile, std::function<void(Card& c)> cardFunc);
+void parseCards(const std::string& cacheFileLoc, std::function<void(Card& c)> cardFunc);
 
 class Database;
 

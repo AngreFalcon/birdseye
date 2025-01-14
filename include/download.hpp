@@ -13,14 +13,14 @@ std::string downloadData(const std::string& dlURL);
  * @brief This function is used to retrieve a JSON object containing the data from the specified Scryfall API URL as a file
  *
  * @param dlURL The Scryfall API URL that specifies the data to be downloaded
- * @param dest The file path for the specified data to be downloaded to
+ * @param dest The FILE pointer used to write our data
  */
-void downloadDataToFile(const std::string& dlURL, const std::string& dest);
+void downloadDataToFile(const std::string& dlURL, const std::string& cacheFileLoc);
 
 /**
  * @brief This function is used to retrieve a JSON object or JSON objects containing the bulk data from the specified Scryfall API URL as a file
  *
  * @param dlURL The Scryfall API URL that specifies the data to be downloaded
- * @param dest The file path for the specified data to be downloaded to
+ * @param dest The FILE pointer used to write our data
  */
-void getBulkDownload(const std::string& dlURL, const std::string& dest);
+void getBulkDownload(const std::string& dlURL, const std::string& cacheFileLoc);

@@ -288,12 +288,7 @@ void Database::bindOpt(SQLite::Statement& stmt, uint32_t ind, std::optional<std:
 }
 
 void Database::bindOpt(SQLite::Statement& stmt, uint32_t ind, std::optional<uint32_t> val) {
-	try {
     val.has_value() ? stmt.bind(ind, val.value()) : stmt.bind(ind);
-    } catch (std::exception& e) {
-        SPDLOG_TRACE("{}", e.what());
-        exit(EXIT_FAILURE);
-    }
     return;
 }
 

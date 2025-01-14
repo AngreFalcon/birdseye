@@ -11,13 +11,13 @@ std::vector<CardSet> parseSets(const std::string& jsonSrc) {
     return cardsets;
 }
 
-void parseCards(const std::string& cacheFile, std::function<void(Card& c)> cardFunc) {
-    FILE* file;
-    fopen_s(&file, cacheFile.c_str(), "r");
+void parseCards(const std::string& cacheFileLoc, std::function<void(Card& c)> cardFunc) {
+    FILE* cacheFile;
+    fopen_s(&cacheFile, cacheFileLoc.c_str(), "r");
     sax_event_consumer sec(cardFunc);
-    bool result = json::sax_parse(file, &sec);
+    bool result = json::sax_parse(cacheFile, &sec);
     if (!result) // json file structure turned out invalid
-    fclose(file);
+    fclose(cacheFile);
     return;
 }
 

@@ -22,30 +22,32 @@ std::string downloadData(const std::string& dlURL) {
         dlResult = curl_easy_perform(curl);
     }
     curl_easy_cleanup(curl);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100)); // ensure we respect scryfall's API guidelines by waiting at least 100 milliseconds before we can possibly initiate another connection
     return data;
 }
 
-void downloadDataToFile(const std::string& dlURL, const std::string& dest) {
+void downloadDataToFile(const std::string& dlURL, const std::string& cacheFileLoc) {
     CURL* curl = curl_easy_init();
     CURLcode dlResult;
-    FILE* data;
+	FILE* cacheFile;
     if (curl) {
-        fopen_s(&data, dest.c_str(), "wb");
+    	fopen_s(&cacheFile, cacheFileLoc.c_str(), "wb");
         curl_easy_setopt(curl, CURLOPT_URL, dlURL.c_str());
         curl_easy_setopt(curl, CURLOPT_USERAGENT, USERAGENT);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, data);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, cacheFile);
         dlResult = curl_easy_perform(curl);
     }
-    fclose(data);
+	fclose(cacheFile);
     curl_easy_cleanup(curl);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100)); // ensure we respect scryfall's API guidelines by waiting at least 100 milliseconds before we can possibly initiate another connection
     return;
 }
 
-void getBulkDownload(const std::string& dlURL, const std::string& dest) {
+void getBulkDownload(const std::string& dlURL, const std::string& cacheFileLoc) {
     std::string str = downloadData(dlURL);
     nlohmann::json j = nlohmann::json::parse(str, nullptr, false);
     str = j["download_uri"];
-    downloadDataToFile(str, dest);
+    downloadDataToFile(str, cacheFileLoc);
     return;
 }
