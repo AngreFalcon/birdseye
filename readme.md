@@ -24,8 +24,7 @@ Birdseye is intended to be a simple, fast, and convenient tool to enable browsin
 
 ## Authors
 
-* Michael Kukulka
-* [@AngreFalcon](https://github.com/AngreFalcon)
+* Michael Kukulka - [AngreFalcon](https://github.com/AngreFalcon)
 
 ## Version History
 
