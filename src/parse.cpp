@@ -1,6 +1,7 @@
 #include "parse.hpp"
 #include <cstdio>
 #include <spdlog/spdlog.h>
+#include <fstream>
 
 std::vector<CardSet> parseSets(const std::string& jsonSrc) {
     std::vector<CardSet> cardsets;
@@ -12,12 +13,11 @@ std::vector<CardSet> parseSets(const std::string& jsonSrc) {
 }
 
 void parseCards(const std::string& cacheFileLoc, std::function<void(Card& c)> cardFunc) {
-    FILE* cacheFile;
-    fopen_s(&cacheFile, cacheFileLoc.c_str(), "r");
+	std::ifstream cacheFile(cacheFileLoc, std::ios::out);
     sax_event_consumer sec(cardFunc);
     bool result = json::sax_parse(cacheFile, &sec);
     if (!result) // json file structure turned out invalid
-    fclose(cacheFile);
+	cacheFile.close();
     return;
 }
 

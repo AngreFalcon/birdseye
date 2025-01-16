@@ -7,8 +7,7 @@
 
 void verifyDBIntegrality(Database& db) {
 	json j = json::parse(downloadData("https://api.scryfall.com/sets"));
-	uint32_t numOfCards = 0;
-	uint32_t numOfSets = 0;
+	uint32_t numOfCards = 0, numOfSets = 0;
 	for (auto& i : j["data"].items()) {
 		numOfCards += i.value()["card_count"];
 		numOfSets++;
@@ -35,7 +34,7 @@ void retrieveSets(Database& db) {
 }
 
 void retrieveCards(Database& db) {
-    std::string cacheFileLoc = "./download-cache.json";
+	std::string cacheFileLoc = "./download-cache.json";
     getBulkDownload("https://api.scryfall.com/bulk-data/default_cards", cacheFileLoc);
     
 	BS::thread_pool tp(std::thread::hardware_concurrency() - 1);
@@ -48,11 +47,6 @@ void retrieveCards(Database& db) {
         });
     });
 	tp.wait();
-	try {
-    std::filesystem::remove(cacheFileLoc);
-    } catch (std::exception& e) {
-        SPDLOG_TRACE("{}", e.what());
-        exit(EXIT_FAILURE);
-    }
+	std::filesystem::remove(cacheFileLoc);
     return;
 }
