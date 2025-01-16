@@ -10,27 +10,22 @@ Birdseye is intended to be a simple, fast, and convenient tool to enable browsin
 
 ### Dependencies
 
-* Birdseye is built using libcurl, sqlitecpp, nlohmann_json, and threadpool. In addition to these, spdlog is used for debugging purposes. Birdseye is intended to be cross-platform, but has not been built or tested on any platforms other than Windows 10.
+* Birdseye is built using libcurl, sqlitecpp, nlohmann_json, and threadpool. In addition to these, spdlog is used for debugging purposes.
+* Birdseye is intended to be cross-platform, but has not been built or tested on any platforms other than Windows 10.
 
 ### Installing
 
-* How/where to download your program
-* Any modifications needed to be made to files/folders
+* Any releases will be hosted alongside the github repository at https://github.com/AngreFalcon/birdseye/releases
+* Birdseye is intended to be a portable application. It will never require elevated permissions and will not prompt for an install location. It will run within the directory it's contained in, and as such, will need to be located in a folder that does not have restricted read/write permissions.
 
 ### Executing program
 
-* How to run the program
-* Step-by-step bullets
-```
-code blocks for commands
-```
+* Birdseye does not have any execution instructions as of 0.1a
 
 ## Authors
 
-Contributors names and contact info
-
-ex. Dominique Pizzie  
-ex. [@DomPizzie](https://twitter.com/dompizzie)
+* Michael Kukulka
+* [@AngreFalcon](https://github.com/AngreFalcon)
 
 ## Version History
 
