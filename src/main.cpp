@@ -17,8 +17,6 @@ void initializeProgram(Database& db) {
     db.initialize();
 	verifyDBIntegrality(db);
     populateDB(db);
-	db.getNumRows("CardSet");
-	db.getNumRows("Card");
     return;
 }
 

@@ -266,7 +266,9 @@ uint32_t Database::getNumRows(const std::string& tableName) {
         SPDLOG_TRACE("{}", e.what());
         exit(EXIT_FAILURE);
     }
-}void Database::bindOpt(SQLite::Statement& stmt, uint32_t ind, std::optional<std::string> val) {
+}
+
+void Database::bindOpt(SQLite::Statement& stmt, uint32_t ind, std::optional<std::string> val) {
     val.has_value() ? stmt.bind(ind, val.value()) : stmt.bind(ind);
     return;
 }
