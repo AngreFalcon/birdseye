@@ -21,8 +21,8 @@ void initializeProgram(Database& db) {
 }
 
 void runProgram(Database& db) {
-    while (true) {
-        db.getTable("CardSet");
+    while (false) {
+		
     }
     return;
 }
