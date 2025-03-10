@@ -210,80 +210,22 @@ bool Database::doCardsNeedUpdate() {
 	return cardsOutOfDate;
 }
 
-void Database::getTableCol(const std::string& tableName, const std::string& col) {
-    try {
-        SQLite::Statement stmt(*connection, "SELECT " + col + " FROM " + tableName);
-        uint32_t colNum = stmt.getColumnIndex(col.c_str());
-        while (stmt.executeStep()) {
-            SPDLOG_TRACE("{}: {}", col, stmt.getColumn(colNum).getString());
-        }
-    } catch (std::exception& e) {
-        SPDLOG_TRACE("{}", e.what());
-        exit(EXIT_FAILURE);
-    }
-    return;
-}
-
-void Database::getTable(const std::string& tableName) {
-    try {
-        SQLite::Statement stmt(*connection, "SELECT * FROM " + tableName);
-        uint32_t numCols = stmt.getColumnCount();
-        std::vector<std::string> colNames;
-        for (uint32_t i = 0; i < numCols; i++) {
-            colNames.emplace_back(stmt.getColumnName(i));
-        }
-        while (stmt.executeStep()) {
-            std::string row;
-            for (uint32_t i = 0; i < numCols; i++) {
-                SQLite::Column colVal = stmt.getColumn(i);
-                if (colVal.isText() && colVal.getString() != "") {
-                    row += colNames[i] + ": " + colVal.getString() + "| ";
-                }
-                else if (colVal.isInteger() && colVal.getInt() != 0) {
-                    row += colNames[i] + ": " + std::to_string(colVal.getInt()) + "| ";
-                }
-                else if (colVal.isFloat() && colVal.getDouble() != 0.0) {
-                    row += colNames[i] + ": " + std::to_string(colVal.getDouble()) + "| ";
-                }
-            }
-            SPDLOG_TRACE("{}", row);
-        }
-    } catch (std::exception& e) {
-        SPDLOG_TRACE("{}", e.what());
-        exit(EXIT_FAILURE);
-    }
-    return;
-}
-
-uint32_t Database::getNumRows(const std::string& tableName) {
-    try {
-		std::string sql = "SELECT COUNT(1) FROM " + tableName;
-		SQLite::Statement stmt(*connection, sql);
-		uint32_t numOfRecords = executeSQLGetInt(stmt, 0);
-		SPDLOG_TRACE("{}: {}", sql, numOfRecords);
-		return numOfRecords;
-    } catch (std::exception& e) {
-        SPDLOG_TRACE("{}", e.what());
-        exit(EXIT_FAILURE);
-    }
-}
-
-void Database::bindOpt(SQLite::Statement& stmt, uint32_t ind, std::optional<std::string> val) {
+void Database::bindOpt(SQLite::Statement& stmt, uint32_t ind, const std::optional<std::string>& val) {
     val.has_value() ? stmt.bind(ind, val.value()) : stmt.bind(ind);
     return;
 }
 
-void Database::bindOpt(SQLite::Statement& stmt, uint32_t ind, std::optional<uint32_t> val) {
+void Database::bindOpt(SQLite::Statement& stmt, uint32_t ind, const std::optional<uint32_t>& val) {
     val.has_value() ? stmt.bind(ind, val.value()) : stmt.bind(ind);
     return;
 }
 
-void Database::bindOpt(SQLite::Statement& stmt, uint32_t ind, std::optional<bool> val) {
+void Database::bindOpt(SQLite::Statement& stmt, uint32_t ind, const std::optional<bool>& val) {
     val.has_value() ? stmt.bind(ind, val.value()) : stmt.bind(ind);
     return;
 }
 
-void Database::bindOpt(SQLite::Statement& stmt, uint32_t ind, std::optional<double> val) {
+void Database::bindOpt(SQLite::Statement& stmt, uint32_t ind, const std::optional<double>& val) {
     val.has_value() ? stmt.bind(ind, val.value()) : stmt.bind(ind);
     return;
 }
@@ -319,8 +261,4 @@ uint32_t Database::executeSQLGetInt(SQLite::Statement& stmt, uint32_t col) {
         exit(EXIT_FAILURE);
     }
     return result;
-}
-
-template <typename T>
-std::optional<Card> getCardByCol(const std::string& colName, const T& colVal) {
 }
