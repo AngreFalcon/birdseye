@@ -23,12 +23,13 @@ public:
 	bool doCardsNeedUpdate();
     void getTableCol(const std::string& tableName, const std::string& col);
     void getTable(const std::string& tableName);
+	uint32_t getNumRows(const std::string& tableName);
     void insertCardSet(const CardSet& cardSet);
     void insertCard(const Card& card);
 
 private:
-	bool setsOutOfDate;
-	bool cardsOutOfDate;
+	bool setsOutOfDate = true;
+	bool cardsOutOfDate = true;
 
     void createTable(const std::string& tableName, const std::string& fields);
     void dropTable(const std::string& tableName);
@@ -38,8 +39,8 @@ private:
     void bindOpt(SQLite::Statement& stmt, uint32_t ind, std::optional<bool>);
     void bindOpt(SQLite::Statement& stmt, uint32_t ind, std::optional<double>);
     void resetSql(SQLite::Statement& stmt);
-    void executeSql(SQLite::Statement& stmt);
-    uint32_t executeInsertGetInt(SQLite::Statement& stmt, uint32_t col);
+    void executeSQL(SQLite::Statement& stmt);
+    uint32_t executeSQLGetInt(SQLite::Statement& stmt, uint32_t col);
 
     void insertArtist(const Artist& artist, const uint32_t faceId);
     void insertColor(const Color& color);

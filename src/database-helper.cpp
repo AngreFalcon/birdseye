@@ -35,6 +35,7 @@ void retrieveSets(Database& db) {
 
 void retrieveCards(Database& db) {
 	std::string cacheFileLoc = "./download-cache.json";
+    getBulkDownload("https://api.scryfall.com/bulk-data/oracle_cards", cacheFileLoc);
     getBulkDownload("https://api.scryfall.com/bulk-data/default_cards", cacheFileLoc);
     
 	BS::thread_pool tp(std::thread::hardware_concurrency() - 1);

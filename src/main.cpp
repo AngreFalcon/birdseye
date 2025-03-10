@@ -17,12 +17,14 @@ void initializeProgram(Database& db) {
     db.initialize();
 	verifyDBIntegrality(db);
     populateDB(db);
+	db.getNumRows("CardSet");
+	db.getNumRows("Card");
     return;
 }
 
 void runProgram(Database& db) {
     while (true) {
-        // db.getTable("CardSet");
+        db.getTable("CardSet");
     }
     return;
 }
